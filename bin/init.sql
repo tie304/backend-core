@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS users (
+	user_id serial PRIMARY KEY,
+	email TEXT UNIQUE NOT NULL,
+	password TEXT NOT NULL,
+	disabled BOOLEAN DEFAULT false,
+	verified BOOLEAN DEFAULT false,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	last_login TIMESTAMP
+); 
