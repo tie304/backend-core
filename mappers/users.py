@@ -1,8 +1,12 @@
-from depends import get_db
-from models.user import User
+from models.user import User, users_table
+from depends import get_database
 
-def create_user(email: str, hashed_password: str) -> int:
-    db = get_db()
-    
-    db.cur.execute(f"INSERT INTO users (email, password) VALUES ('{email}', '{hashed_password}') RETURNING user_id;")
-    return db.cur.fetchone()[0]
+
+async def create_user(email: str, hashed_password: str) -> int:
+    db = get_database()
+    query = users_table.insert().values(
+        email=email, hashed_password=hashed_password, disabled=False
+    )
+    print(query, "query here")
+    last_record_id = await db.execute(query)
+    print(last_record_id)

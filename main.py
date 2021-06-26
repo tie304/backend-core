@@ -5,9 +5,25 @@ from models.auth import Token
 from models.user import User, UserSignup
 from controllers.auth import *
 import controllers.user as users_controler
-import depends
+from depends import Database, get_database
+
 
 app = FastAPI()
+
+Database()  # init database
+
+
+@app.on_event("startup")
+async def startup():
+    print("starting up")
+    database = get_database()
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    database = get_database()
+    await database.disconnect()
 
 
 @app.post("/token", response_model=Token)
@@ -25,9 +41,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @app.post("/signup", status_code=201)
 async def signup(user_signup: UserSignup):
-    user_id = users_controler.register_user(user_signup)
+    user_id = await users_controler.register_user(user_signup)
+
 
 @app.get("/users/me/", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
@@ -37,6 +55,3 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 @app.get("/users/me/items/")
 async def read_own_items(current_user: User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
-
-
-

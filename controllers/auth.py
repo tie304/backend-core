@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException
@@ -7,9 +8,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from models.user import User, UserOutput
 from models.auth import TokenData
+from models.config import AuthConfig
+
+cfg = AuthConfig()
 
 # openssl rand -hex 32
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+SECRET_KEY = cfg.jwt_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -41,6 +45,7 @@ def authenticate_user(fake_db, username: str, password: str):
         return False
     return user
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -60,7 +65,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub") # extract data pulled off user
+        username: str = payload.get("sub")  # extract data pulled off user
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
@@ -72,9 +77,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)): 
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-
-

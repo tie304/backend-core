@@ -9,4 +9,3 @@ class Token(BaseModel):
 
 class TokenData:
     username: Optional[str] = None
-
