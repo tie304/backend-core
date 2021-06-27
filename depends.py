@@ -1,4 +1,5 @@
 import databases
+import logging
 from sqlalchemy import create_engine, MetaData
 
 from models.config import DBConfig
@@ -18,7 +19,7 @@ class Database:
         Database.engine = create_engine(DATABASE_URL)
         Database.database = databases.Database(DATABASE_URL)
         metadata.create_all(Database.engine)
-        print("tables created")
+        logging.info("tables created")
 
 
 def get_database():

@@ -7,6 +7,15 @@ async def create_user(email: str, hashed_password: str) -> int:
     query = users_table.insert().values(
         email=email, hashed_password=hashed_password, disabled=False
     )
-    print(query, "query here")
     last_record_id = await db.execute(query)
-    print(last_record_id)
+
+
+async def get_user_by_email(email: str) -> User:
+    db = get_database()
+    query = users_table.select().where(users_table.c.email == email)
+    user = await db.fetch_one(query=query)
+    return _query_to_model(tuple(user.keys()), tuple(user.values()))
+
+
+def _query_to_model(keys: tuple, values: tuple) -> User:
+    return User(**dict(zip(keys, values)))
