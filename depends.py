@@ -22,7 +22,6 @@ class Database:
         Database.session_maker = sessionmaker(
             autocommit=False, autoflush=False, bind=Database.engine
         )
-        print(Database.session_maker)
         Base.metadata.create_all(bind=Database.engine)
         logging.info("tables created")
 

@@ -17,7 +17,7 @@ cfg = AuthConfig()
 # openssl rand -hex 32
 SECRET_KEY = cfg.jwt_key
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = cfg.token_expire
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

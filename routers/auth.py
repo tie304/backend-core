@@ -20,7 +20,7 @@ def signup(user_signup: UserSignup) -> int:
 
 
 @router.get("/users/me/", response_model=UserBase)
-async def read_users_me(
+def read_users_me(
     current_user: UserBase = Depends(auth_controler.get_current_active_user),
 ):
     return current_user
