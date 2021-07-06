@@ -1,26 +1,33 @@
 import databases
 import logging
 from sqlalchemy import create_engine, MetaData
-
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from models.config import DBConfig
 
 cfg = DBConfig()
 DATABASE_URL = f"postgres://{cfg.database_user}:{cfg.database_password}@{cfg.database_host}/{cfg.database_name}"
 
-
-metadata = MetaData()
+Base = declarative_base()
 
 
 class Database:
     engine = None
     database = None
+    session_maker = None
 
     def __init__(self):
         Database.engine = create_engine(DATABASE_URL)
         Database.database = databases.Database(DATABASE_URL)
-        metadata.create_all(Database.engine)
+        Database.session_maker = sessionmaker(
+            autocommit=False, autoflush=False, bind=Database.engine
+        )
+        print(Database.session_maker)
+        Base.metadata.create_all(bind=Database.engine)
         logging.info("tables created")
 
 
 def get_database():
-    return Database.database
+    # Dependency
+    db = Database.session_maker()
+    return db
