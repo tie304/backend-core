@@ -17,6 +17,12 @@ class User(Base):
     last_login = Column(DateTime)
 
 
+class UserVerifed(Base):
+    __tablename__ = "user_verification_map"
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    code = Column(String)
+
+
 class UserBase(BaseModel):
     id: int
     email: str

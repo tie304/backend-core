@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
@@ -10,7 +12,8 @@ from models.user import UserBase, UserOutput, UserSignup
 from models.auth import TokenData
 from models.config import AuthConfig
 
-from mappers.users import get_user_by_email
+from mappers.users import get_user_by_email, get_user_by_id, update_user
+import mappers.auth as auth_mapper
 
 cfg = AuthConfig()
 
@@ -23,6 +26,32 @@ ACCESS_TOKEN_EXPIRE_MINUTES = cfg.token_expire
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def generate_random_code():
+    # initializing size of string
+    N = 15
+
+    # using random.choices()
+    # generating random strings
+    res = "".join(random.choices(string.ascii_uppercase + string.digits, k=N))
+    return res
+
+
+def create_user_verification_url(user_id: int):
+    code = generate_random_code()
+    auth_mapper.create_user_verification_url(user_id, code)
+
+
+def verify_user(code: str):
+    user_map = auth_mapper.get_user_verification(code)
+    if not user_map:
+        raise HTTPException(status_code=400, detail="incorrect code provided")
+    user = get_user_by_id(user_map.user_id)
+    if user.verified:
+        raise HTTPException(status_code=400, detail="user already verified")
+    user.verified = True
+    update_user(user)
 
 
 def verify_password(plain_password, hashed_password):

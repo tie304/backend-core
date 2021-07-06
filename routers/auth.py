@@ -24,3 +24,8 @@ def read_users_me(
     current_user: UserBase = Depends(auth_controler.get_current_active_user),
 ):
     return current_user
+
+
+@router.get("/users/verify/")
+def verify(code: str):
+    auth_controler.verify_user(code)
