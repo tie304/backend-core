@@ -20,3 +20,8 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     pass
+
+
+@app.get("/healthcheck", status_code=200)
+def healthcheck():
+    pass
