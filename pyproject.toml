@@ -12,6 +12,7 @@ python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 psycopg2-binary = "^2.9.1"
 databases = {extras = ["postgresql"], version = "^0.4.3"}
+sendgrid = "^6.7.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.6b0"

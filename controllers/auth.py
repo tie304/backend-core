@@ -14,6 +14,7 @@ from models.config import AuthConfig
 
 from mappers.users import get_user_by_email, get_user_by_id, update_user
 import mappers.auth as auth_mapper
+import mappers.email as email_mapper
 
 cfg = AuthConfig()
 
@@ -37,9 +38,12 @@ def generate_random_code(N: int = 15) -> str:
     return res
 
 
-def create_user_verification_url(user_id: int):
+def create_user_verification_url(user_id: int, host: str):
     code = generate_random_code()
     auth_mapper.create_user_verification_url(user_id, code)
+    user = get_user_by_id(user_id)
+    verify_url = f"{host}/users/verify?code={code}"
+    email_mapper.send_verification_email(user.email, verify_url)
 
 
 def verify_user(code: str):

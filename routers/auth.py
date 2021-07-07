@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from models.user import UserSignup, UserBase, UserPasswordIngress
 from models.auth import Token
@@ -14,8 +14,9 @@ def login_for_access_token(user_login: UserSignup):
 
 
 @router.post("/signup", status_code=201)
-def signup(user_signup: UserSignup) -> int:
-    user_id = users_controler.register_user(user_signup)
+def signup(user_signup: UserSignup, request: Request) -> int:
+    host = request.client.host
+    user_id = users_controler.register_user(user_signup, host)
     return user_id
 
 
@@ -29,6 +30,7 @@ def read_users_me(
 @router.get("/users/verify/")
 def verify(code: str):
     auth_controler.verify_user(code)
+    return "success"
 
 
 @router.post("/users/password/reset/")
