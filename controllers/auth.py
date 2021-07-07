@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from models.user import UserBase, UserOutput, UserSignup
+from models.user import UserBase, UserOutput, UserSignup, UserPasswordIngress
 from models.auth import TokenData
 from models.config import AuthConfig
 
@@ -28,9 +28,8 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def generate_random_code():
+def generate_random_code(N: int = 15) -> str:
     # initializing size of string
-    N = 15
 
     # using random.choices()
     # generating random strings
@@ -52,6 +51,7 @@ def verify_user(code: str):
         raise HTTPException(status_code=400, detail="user already verified")
     user.verified = True
     update_user(user)
+    auth_mapper.delete_user_verification_by_code(code)
 
 
 def verify_password(plain_password, hashed_password):
@@ -127,3 +127,26 @@ def get_current_active_user(current_user: UserBase = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+def create_reset_password(email: str):
+    user = get_user_by_email(email)
+    reset = auth_mapper.get_password_reset_by_user_id(user.id)
+    if reset:
+        # TODO resend code
+        return
+    if user and user.verified and not user.disabled:
+        code = generate_random_code()
+        auth_mapper.create_password_reset(user.id, code)
+        # TODO send email here
+
+
+def reset_password(code: str, password: UserPasswordIngress):
+    reset = auth_mapper.get_password_reset_by_code(code)
+    if not reset:
+        raise HTTPException(status_code=401, detail="invalid code")
+    user = get_user_by_id(reset.user_id)
+    new_hash = get_password_hash(password.password)
+    user.hashed_password = new_hash
+    update_user(user)
+    auth_mapper.delete_password_reset_by_code(code)

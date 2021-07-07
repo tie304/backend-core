@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from models.user import UserSignup, UserBase
+from models.user import UserSignup, UserBase, UserPasswordIngress
 from models.auth import Token
 import controllers.auth as auth_controler
 import controllers.user as users_controler
@@ -29,3 +29,13 @@ def read_users_me(
 @router.get("/users/verify/")
 def verify(code: str):
     auth_controler.verify_user(code)
+
+
+@router.post("/users/password/reset/")
+def create_reset_password(email: str):
+    auth_controler.create_reset_password(email)
+
+
+@router.put("/users/password/reset/", status_code=201)
+def reset_password(code: str, user_password: UserPasswordIngress):
+    auth_controler.reset_password(code, user_password)

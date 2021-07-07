@@ -23,6 +23,12 @@ class UserVerifed(Base):
     code = Column(String)
 
 
+class UserPasswordReset(Base):
+    __tablename__ = "user_password_reset"
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, unique=True)
+    code = Column(String)
+
+
 class UserBase(BaseModel):
     id: int
     email: str
@@ -42,6 +48,10 @@ class UserSignup(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserPasswordIngress(BaseModel):
+    password: str
 
 
 class UserOutput(User):
