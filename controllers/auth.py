@@ -1,4 +1,5 @@
 import os
+import re
 import random
 import string
 from datetime import datetime, timedelta
@@ -27,6 +28,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = cfg.token_expire
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def check_if_valid_email(email: str) -> bool:
+    exp = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    # and the string in search() method
+    if re.match(exp, email):
+        return True
+    return False
 
 
 def generate_random_code(N: int = 15) -> str:

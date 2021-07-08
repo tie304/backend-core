@@ -12,8 +12,8 @@ email_templates = Jinja2Templates(directory="static/templates/email")
 
 def send_email(to: str, subject: str, template: str):
     sg = sendgrid.SendGridAPIClient(api_key=API_KEY)
-    from_email = Email("tylerhanson921@gmail.com")  # Change to your verified sender
-    to_email = To("tylerhanson921@gmail.com")  # Change to your recipient
+    from_email = Email(cfg.sendgrid_sender)  # Change to your verified sender
+    to_email = To(to)  # Change to your recipient
     content = Content("text/html", template)
     mail = Mail(from_email, to_email, subject, content)
 

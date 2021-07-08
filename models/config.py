@@ -11,12 +11,13 @@ class DBConfig(BaseSettings):
 
 class AuthConfig(BaseSettings):
     jwt_key: str
-    token_expire: int = 120
+    token_expire: int = 120  # minutes
 
 
 class SendGridConfig(BaseSettings):
     sendgrid_api_key: str
+    sendgrid_sender: str  # verified sender email
 
 
 class ProductConfig(BaseSettings):
-    product_name: str = "Product name here"
+    product_name: str

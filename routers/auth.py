@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, Request
-
+from fastapi.templating import Jinja2Templates
 from models.user import UserSignup, UserBase, UserPasswordIngress
 from models.auth import Token
 import controllers.auth as auth_controler
 import controllers.user as users_controler
 
 router = APIRouter()
+
+auth_templates = Jinja2Templates(directory="static/templates/web")
 
 
 @router.post("/token", response_model=Token)
@@ -28,9 +30,9 @@ def read_users_me(
 
 
 @router.get("/users/verify/")
-def verify(code: str):
+def verify(code: str, request: Request):
     auth_controler.verify_user(code)
-    return "success"
+    return auth_templates.TemplateResponse("verification.html", {"request": request})
 
 
 @router.post("/users/password/reset/")
