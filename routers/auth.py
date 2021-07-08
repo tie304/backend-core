@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Form
 from fastapi.templating import Jinja2Templates
 from models.user import UserSignup, UserBase, UserPasswordIngress
 from models.auth import Token
@@ -35,11 +35,23 @@ def verify(code: str, request: Request):
     return auth_templates.TemplateResponse("verification.html", {"request": request})
 
 
-@router.post("/users/password/reset/")
-def create_reset_password(email: str):
-    auth_controler.create_reset_password(email)
+@router.post("/users/create/password/reset/")
+def create_reset_password(email: str, request: Request):
+    host = request.client.host
+    auth_controler.create_reset_password(email, host)
 
 
-@router.put("/users/password/reset/", status_code=201)
-def reset_password(code: str, user_password: UserPasswordIngress):
-    auth_controler.reset_password(code, user_password)
+@router.get("/users/password/reset/")
+def get_reset_password(code: str, request: Request):
+    return auth_templates.TemplateResponse(
+        "password_reset.html", {"request": request, "code": code}
+    )
+
+
+@router.post("/users/password/reset/", status_code=201)
+def reset_password(request: Request, code: str, password: str = Form(...)):
+    auth_controler.reset_password(code, password)
+
+    return auth_templates.TemplateResponse(
+        "password_reset.html", {"request": request, "status": "success"}
+    )

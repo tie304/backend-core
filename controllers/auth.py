@@ -142,7 +142,7 @@ def get_current_active_user(current_user: UserBase = Depends(get_current_user)):
     return current_user
 
 
-def create_reset_password(email: str):
+def create_reset_password(email: str, host: str):
     user = get_user_by_email(email)
     reset = auth_mapper.get_password_reset_by_user_id(user.id)
     if reset:
@@ -152,14 +152,16 @@ def create_reset_password(email: str):
         code = generate_random_code()
         auth_mapper.create_password_reset(user.id, code)
         # TODO send email here
+        reset_url = f"{host}/users/password/reset/?code={code}"
+        email_mapper.send_password_reset_email(email, reset_url)
 
 
-def reset_password(code: str, password: UserPasswordIngress):
+def reset_password(code: str, password: str):
     reset = auth_mapper.get_password_reset_by_code(code)
     if not reset:
         raise HTTPException(status_code=401, detail="invalid code")
     user = get_user_by_id(reset.user_id)
-    new_hash = get_password_hash(password.password)
+    new_hash = get_password_hash(password)
     user.hashed_password = new_hash
     update_user(user)
     auth_mapper.delete_password_reset_by_code(code)

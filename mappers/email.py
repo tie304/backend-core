@@ -30,3 +30,12 @@ def send_verification_email(email: str, verify_url: str):
     subject = "Please Verify Your Email"
     template = email_templates.get_template("verify.html").render(verify_url=verify_url)
     send_email(email, subject, template)
+
+
+def send_password_reset_email(email: str, reset_url: str):
+
+    subject = "Password Reset"
+    template = email_templates.get_template("password_reset.html").render(
+        reset_url=reset_url
+    )
+    send_email(email, subject, template)
