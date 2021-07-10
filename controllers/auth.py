@@ -11,14 +11,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from models.user import UserBase, UserOutput, UserSignup, UserPasswordIngress
 from models.auth import TokenData
-from models.config import AuthConfig
+from models.config import AuthConfig, ProductConfig
 
 from mappers.users import get_user_by_email, get_user_by_id, update_user
 import mappers.auth as auth_mapper
 import mappers.email as email_mapper
 
 cfg = AuthConfig()
-
+prod_cfg = ProductConfig()
 # openssl rand -hex 32
 SECRET_KEY = cfg.jwt_key
 ALGORITHM = "HS256"
@@ -47,11 +47,16 @@ def generate_random_code(N: int = 15) -> str:
     return res
 
 
-def create_user_verification_url(user_id: int, host: str):
+def validate_password(password: str):
+    if len(password) < cfg.password_length:
+        raise ValueError("password must be {cfg.password_length}")
+
+
+def create_user_verification_url(user_id: int):
     code = generate_random_code()
     auth_mapper.create_user_verification_url(user_id, code)
     user = get_user_by_id(user_id)
-    verify_url = f"{host}/users/verify?code={code}"
+    verify_url = f"{prod_cfg.product_ingress_host}/users/verify?code={code}"
     email_mapper.send_verification_email(user.email, verify_url)
 
 
@@ -142,7 +147,7 @@ def get_current_active_user(current_user: UserBase = Depends(get_current_user)):
     return current_user
 
 
-def create_reset_password(email: str, host: str):
+def create_reset_password(email: str):
     user = get_user_by_email(email)
     reset = auth_mapper.get_password_reset_by_user_id(user.id)
     if reset:
@@ -152,7 +157,7 @@ def create_reset_password(email: str, host: str):
         code = generate_random_code()
         auth_mapper.create_password_reset(user.id, code)
         # TODO send email here
-        reset_url = f"{host}/users/password/reset/?code={code}"
+        reset_url = f"{prod_cfg.product_ingress_host}/users/password/reset/?code={code}"
         email_mapper.send_password_reset_email(email, reset_url)
 
 
@@ -160,6 +165,7 @@ def reset_password(code: str, password: str):
     reset = auth_mapper.get_password_reset_by_code(code)
     if not reset:
         raise HTTPException(status_code=401, detail="invalid code")
+    validate_password(password)
     user = get_user_by_id(reset.user_id)
     new_hash = get_password_hash(password)
     user.hashed_password = new_hash

@@ -2,9 +2,10 @@ import sendgrid
 import os
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from fastapi.templating import Jinja2Templates
-from models.config import SendGridConfig
+from models.config import SendGridConfig, EmailSettings
 
 cfg = SendGridConfig()
+email_cfg = EmailSettings()
 API_KEY = cfg.sendgrid_api_key
 
 email_templates = Jinja2Templates(directory="static/templates/email")
@@ -28,12 +29,13 @@ def send_email(to: str, subject: str, template: str):
 
 def send_verification_email(email: str, verify_url: str):
     subject = "Please Verify Your Email"
-    template = email_templates.get_template("verify.html").render(verify_url=verify_url)
+    template = email_templates.get_template("verify.html").render(
+        verify_url=verify_url, **email_cfg.dict()
+    )
     send_email(email, subject, template)
 
 
 def send_password_reset_email(email: str, reset_url: str):
-
     subject = "Password Reset"
     template = email_templates.get_template("password_reset.html").render(
         reset_url=reset_url

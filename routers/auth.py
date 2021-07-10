@@ -16,9 +16,8 @@ def login_for_access_token(user_login: UserSignup):
 
 
 @router.post("/signup", status_code=201)
-def signup(user_signup: UserSignup, request: Request) -> int:
-    host = request.client.host
-    user_id = users_controler.register_user(user_signup, host)
+def signup(user_signup: UserSignup) -> int:
+    user_id = users_controler.register_user(user_signup)
     return user_id
 
 
@@ -36,9 +35,8 @@ def verify(code: str, request: Request):
 
 
 @router.post("/users/create/password/reset/")
-def create_reset_password(email: str, request: Request):
-    host = request.client.host
-    auth_controler.create_reset_password(email, host)
+def create_reset_password(email: str):
+    auth_controler.create_reset_password(email)
 
 
 @router.get("/users/password/reset/")
@@ -50,7 +48,13 @@ def get_reset_password(code: str, request: Request):
 
 @router.post("/users/password/reset/", status_code=201)
 def reset_password(request: Request, code: str, password: str = Form(...)):
-    auth_controler.reset_password(code, password)
+    try:
+        auth_controler.reset_password(code, password)
+    except ValueError as e:
+        return auth_templates.TemplateResponse(
+            "password_reset.html",
+            {"request": request, "status": "password-error", "code": code},
+        )
 
     return auth_templates.TemplateResponse(
         "password_reset.html", {"request": request, "status": "success"}

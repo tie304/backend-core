@@ -1,6 +1,7 @@
-from pydantic import BaseSettings
+from typing import Optional
+from pydantic import BaseSettings, BaseModel
 
-
+# ENV SETTINGS
 class DBConfig(BaseSettings):
     database_name: str
     database_user: str
@@ -12,6 +13,7 @@ class DBConfig(BaseSettings):
 class AuthConfig(BaseSettings):
     jwt_key: str
     token_expire: int = 120  # minutes
+    password_length: int = 6
 
 
 class SendGridConfig(BaseSettings):
@@ -21,3 +23,12 @@ class SendGridConfig(BaseSettings):
 
 class ProductConfig(BaseSettings):
     product_name: str
+    product_ingress_host: str
+
+
+class EmailSettings(BaseModel):
+    verify_header: str = "Welcome!"
+    verify_subtext: str = "To get started please verify your email!"
+    company_name: Optional[str]
+    company_address_1: Optional[str]
+    company_address_2: Optional[str]
