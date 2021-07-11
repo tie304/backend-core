@@ -150,8 +150,11 @@ def get_current_active_user(current_user: UserBase = Depends(get_current_user)):
 def create_reset_password(email: str):
     user = get_user_by_email(email)
     reset = auth_mapper.get_password_reset_by_user_id(user.id)
-    if reset:
-        # TODO resend code
+    if reset:  # if reset entry already found then resend email with same code
+        reset_url = (
+            f"{prod_cfg.product_ingress_host}/users/password/reset/?code={reset.code}"
+        )
+        email_mapper.send_password_reset_email(email, reset_url)
         return
     if user and user.verified and not user.disabled:
         code = generate_random_code()
