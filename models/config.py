@@ -26,6 +26,13 @@ class ProductConfig(BaseSettings):
     product_ingress_host: str
 
 
+class Config(BaseModel):
+    db: DBConfig = DBConfig()
+    basic_auth: AuthConfig = AuthConfig()
+    sendgrid: SendGridConfig = SendGridConfig()
+    product_config: ProductConfig = ProductConfig()
+
+
 class EmailSettings(BaseModel):
     verify_header: str = "Welcome!"
     verify_subtext: str = "To get started please verify your email!"

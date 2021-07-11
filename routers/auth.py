@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.templating import Jinja2Templates
 from models.user import UserSignup, UserBase, UserPasswordIngress
 from models.auth import Token
@@ -6,35 +6,9 @@ import controllers.auth as auth_controler
 import controllers.user as users_controler
 
 
-from authlib.integrations.starlette_client import OAuth
-
-oauth = OAuth()
-oauth.register(
-    name="google",
-    client_id="591373063132-5il667cpkarl97s2e6segb41rd2t85v8.apps.googleusercontent.com",
-    client_secret="LET3YuQWCTOjg1j36kq7hRke",
-    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_kwargs={"scope": "openid email profile"},
-)
-
 router = APIRouter()
 
 auth_templates = Jinja2Templates(directory="static/templates/web")
-
-
-@router.route("/google/login")
-async def login(request: Request):
-    # absolute url for callback
-    # we will define it below
-    redirect_uri = request.url_for("auth")
-    return await oauth.google.authorize_redirect(request, redirect_uri)
-
-
-@router.route("/google/auth")
-async def auth(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    user = await oauth.google.parse_id_token(request, token)
-    return user
 
 
 @router.post("/token", response_model=Token)
