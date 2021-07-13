@@ -1,15 +1,22 @@
 import datetime
-from typing import Optional
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
+from enum import Enum
+from typing import Optional, List
+from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.sql import expression, func
 from pydantic import BaseModel
 from depends import Base
+
+
+class UserRoles(Enum):
+    ADMIN = "admin"
+    USER = "user"
 
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=False, unique=True)
+    roles = Column(ARRAY(String))
     hashed_password = Column(String, nullable=False)
     disabled = Column(Boolean, server_default=expression.false())
     verified = Column(Boolean, server_default=expression.false())
@@ -32,6 +39,7 @@ class UserPasswordReset(Base):
 class UserBase(BaseModel):
     id: int
     email: str
+    roles: List[UserRoles]
     hashed_password: str
     disabled: bool = False
     verified: bool = False

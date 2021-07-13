@@ -1,12 +1,12 @@
 from fastapi import HTTPException
-from models.user import UserSignup
+from models.user import UserSignup, UserBase
 from controllers.auth import (
     get_password_hash,
     create_user_verification_url,
     check_if_valid_email,
     validate_password,
 )
-from mappers.users import create_user
+import mappers.users as users_mapper
 
 
 def register_user(user_signup: UserSignup) -> int:
@@ -15,6 +15,12 @@ def register_user(user_signup: UserSignup) -> int:
 
     validate_password(user_signup.password)
     hash_pw = get_password_hash(user_signup.password)
-    user_id = create_user(user_signup.email, hash_pw).id
+    user_id = users_mapper.create_user(user_signup.email, hash_pw).id
     create_user_verification_url(user_id)
     return user_id
+
+
+def disable_user(user_id: int):
+    user = users_mapper.get_user_by_id(user_id)
+    user.disabled = True
+    users_mapper.update_user(user)
