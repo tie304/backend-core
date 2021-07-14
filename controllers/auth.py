@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from models.user import UserBase, UserOutput, UserSignup, UserPasswordIngress
+from models.user import User, UserBase, UserOutput, UserSignup, UserPasswordIngress
 from models.auth import TokenData
 from models.config import AuthConfig, ProductConfig
 
@@ -22,7 +22,6 @@ prod_cfg = ProductConfig()
 # openssl rand -hex 32
 SECRET_KEY = cfg.jwt_key
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = cfg.token_expire
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -80,12 +79,6 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserOutput(**user_dict)
-
-
 def authenticate_user(user_login: UserSignup):
     user = validate_user(user_login.email, user_login.password)
     if not user:
@@ -94,11 +87,58 @@ def authenticate_user(user_login: UserSignup):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = encode_token(user.email)
+    refresh_token = encode_refresh_token(user.email)
+
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
+
+def encode_token(email: str) -> str:
+    payload = {
+        "sub": email,
+        "exp": datetime.utcnow() + timedelta(days=0, hours=cfg.access_token_expire),
+        "iat": datetime.utcnow(),
+        "scope": "access_token",
+    }
+
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def encode_refresh_token(email: str) -> str:
+    payload = {
+        "sub": email,
+        "exp": datetime.utcnow() + timedelta(days=0, hours=cfg.refresh_token_expire),
+        "iat": datetime.utcnow(),
+        "scope": "refresh_token",
+    }
+
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def refresh_token(refresh_token):
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload["scope"] == "refresh_token":
+            email = payload["sub"]
+            new_token = encode_token(email)
+            return new_token
+        raise HTTPException(status_code=401, detail="Invalid scope for token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+
+def decode_token(self, token):
+    try:
+        payload = jwt.decode(token, self.secret, algorithms=["HS256"])
+        if payload["scope"] == "access_token":
+            return payload["sub"]
+        raise HTTPException(status_code=401, detail="Scope for the token is invalid")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 def validate_user(email: str, password: str):
@@ -108,17 +148,6 @@ def validate_user(email: str, password: str):
     if not verify_password(password, user.hashed_password):
         return False
     return user
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):

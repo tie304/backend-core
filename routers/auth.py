@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.templating import Jinja2Templates
 from models.user import UserSignup, UserBase, UserPasswordIngress
-from models.auth import Token
+from models.auth import Tokens, RefreshTokenIngress
 import controllers.auth as auth_controler
 import controllers.user as users_controler
 
@@ -11,7 +11,7 @@ router = APIRouter()
 auth_templates = Jinja2Templates(directory="static/templates/web")
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Tokens)
 def login_for_access_token(user_login: UserSignup):
     return auth_controler.authenticate_user(user_login)
 
@@ -20,6 +20,13 @@ def login_for_access_token(user_login: UserSignup):
 def signup(user_signup: UserSignup) -> int:
     user_id = users_controler.register_user(user_signup)
     return user_id
+
+
+@router.get("/refresh_token")
+def refresh_token(refresh_token: RefreshTokenIngress):
+    refresh_token = refresh_token.refresh_token
+    new_token = auth_controler.refresh_token(refresh_token)
+    return {"access_token": new_token}
 
 
 @router.get("/users/me/", response_model=UserBase)

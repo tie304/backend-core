@@ -12,7 +12,8 @@ class DBConfig(BaseSettings):
 
 class AuthConfig(BaseSettings):
     jwt_key: str
-    token_expire: int = 120  # minutes
+    access_token_expire: float = 0.5  # hours
+    refresh_token_expire: float = 10  # hours
     password_length: int = 6
 
 
