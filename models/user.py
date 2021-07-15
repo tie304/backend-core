@@ -50,6 +50,19 @@ class UserBase(BaseModel):
         orm_mode = True
 
 
+class UserOutput(BaseModel):
+    id: int
+    email: str
+    roles: List[UserRoles] = []
+    disabled: bool = False
+    verified: bool = False
+    created_on: datetime.datetime  # postgres default
+    last_login: Optional[datetime.datetime]
+
+    class Config:
+        orm_mode = True
+
+
 class UserSignup(BaseModel):
     email: str
     password: str
@@ -60,10 +73,3 @@ class UserSignup(BaseModel):
 
 class UserPasswordIngress(BaseModel):
     password: str
-
-
-class UserOutput(User):
-    hashed_password: str
-
-    class Config:
-        orm_mode = True

@@ -1,5 +1,6 @@
+from typing import List
 from fastapi import HTTPException
-from models.user import UserSignup, UserBase
+from models.user import User, UserSignup, UserBase, UserOutput
 from controllers.auth import (
     get_password_hash,
     create_user_verification_url,
@@ -24,3 +25,19 @@ def disable_user(user_id: int):
     user = users_mapper.get_user_by_id(user_id)
     user.disabled = True
     users_mapper.update_user(user)
+
+
+def enable_user(user_id: int):
+    user = users_mapper.get_user_by_id(user_id)
+    user.disabled = False
+    users_mapper.update_user(user)
+
+
+def search(limit: int, skip: int) -> List[UserOutput]:
+    users = users_mapper.search(limit, skip)
+    return [_user_to_output(user) for user in users]
+
+
+def _user_to_output(user: User) -> UserOutput:
+    del user._sa_instance_state
+    return UserOutput(**user.__dict__)

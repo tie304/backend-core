@@ -1,3 +1,4 @@
+from typing import List
 import sqlalchemy
 from fastapi import Depends, HTTPException
 from models.user import User, UserBase
@@ -39,3 +40,10 @@ def get_user_by_id(_id: int) -> User:
     user = session.query(User).filter(User.id == _id).first()
     session.close()
     return user
+
+
+def search(limit: int, skip: int, _filter: dict = {}) -> List[User]:
+    session = get_database()
+    users = session.query(User).filter_by(**_filter).offset(skip).limit(limit).all()
+    session.close()
+    return users
