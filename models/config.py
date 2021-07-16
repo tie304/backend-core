@@ -34,6 +34,14 @@ class Config(BaseModel):
     product_config: ProductConfig = ProductConfig()
 
 
+class AWSConfig(BaseSettings):
+    access_key: str
+    secret_key: str
+
+    class Config:
+        env_prefix = "aws_"
+
+
 class EmailSettings(BaseModel):
     verify_header: str = "Welcome!"
     verify_subtext: str = "To get started please verify your email!"
