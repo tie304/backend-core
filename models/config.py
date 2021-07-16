@@ -37,6 +37,7 @@ class Config(BaseModel):
 class AWSConfig(BaseSettings):
     access_key: str
     secret_key: str
+    bucket_name: str
 
     class Config:
         env_prefix = "aws_"

@@ -1,8 +1,14 @@
+import uuid
 from depends import get_s3_client
 from botocore.exceptions import ClientError
 
 
-def upload_file(file_name, bucket, object_name=None):
+from models.config import AWSConfig
+
+aws_cfg = AWSConfig()
+
+
+def upload_file(file: bytes) -> str:
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
@@ -11,18 +17,17 @@ def upload_file(file_name, bucket, object_name=None):
     :return: True if file was uploaded, else False
     """
 
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = file_name
-
     # Upload the file
     s3_client = get_s3_client()
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
+        obj_uid = str(uuid.uuid4())
+        response = s3_client.upload_fileobj(file, aws_cfg.bucket_name, obj_uid)
+        print(response)
     except ClientError as e:
+        print(e)
         logging.error(e)
-        return False
-    return True
+        raise HTTPException(status_code=500, detail="upload error")
+    return obj_uid
 
 
 def download_file(bucket_name, object_name, download_path):

@@ -3,12 +3,14 @@ from models.user import UserBase, UserSignup
 from depends import Database, get_database
 from routers import auth
 from routers import users
+from routers import email_template
 
 app = FastAPI()
 Database()  # init database
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(email_template.router)
 
 
 @app.on_event("startup")
