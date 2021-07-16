@@ -7,7 +7,16 @@ from pydantic import BaseModel
 from depends import Base
 
 
-class UserRoles(Enum):
+class ApplicationRole(str, Enum):
+    """
+    Roles of the applicaton.
+
+    ADMIN:
+        Admin has access to all config and user admin routes
+    USER:
+        user has access to all the normal application routes
+    """
+
     ADMIN = "admin"
     USER = "user"
 
@@ -16,7 +25,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     email = Column(String, nullable=False, unique=True)
-    roles = Column(ARRAY(String))
+    role = Column(String, server_default=ApplicationRole.USER.value)
     hashed_password = Column(String, nullable=False)
     disabled = Column(Boolean, server_default=expression.false())
     verified = Column(Boolean, server_default=expression.false())
@@ -39,7 +48,7 @@ class UserPasswordReset(Base):
 class UserBase(BaseModel):
     id: int
     email: str
-    roles: List[UserRoles]
+    role: ApplicationRole
     hashed_password: str
     disabled: bool = False
     verified: bool = False
@@ -53,7 +62,7 @@ class UserBase(BaseModel):
 class UserOutput(BaseModel):
     id: int
     email: str
-    roles: List[UserRoles] = []
+    role: ApplicationRole
     disabled: bool = False
     verified: bool = False
     created_on: datetime.datetime  # postgres default

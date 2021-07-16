@@ -1,13 +1,13 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends
-from models.user import UserRoles
+from models.user import ApplicationRole
 from utils.role_checker import RoleChecker
 from models.user import UserOutput, User
 import controllers.user as users_controler
 
 router = APIRouter()
 
-allow_admin_access = RoleChecker([UserRoles.ADMIN.value])
+allow_admin_access = RoleChecker([ApplicationRole.ADMIN.value])
 
 
 @router.post(
