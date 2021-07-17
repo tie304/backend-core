@@ -9,7 +9,7 @@ class EmailTemplate(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     template_name = Column(String, unique=True)
-    object_name = Column(String, unique=True)  # bucket
+    object_id = Column(String, unique=True)  # bucket
     fields = Column(ARRAY(String))  # fields pulled off template
 
 
@@ -18,7 +18,8 @@ class EmailTemplateValueMap(Base):
     template_id = user_id = Column(
         Integer, ForeignKey("email_templates.id"), primary_key=True
     )
-    values = Column(ARRAY(String), nullable=False)
+    value = Column(String, nullable=False)
+    field = Column(String, nullable=False)
 
 
 class EmailTemplateBase(BaseModel):
@@ -27,3 +28,7 @@ class EmailTemplateBase(BaseModel):
     template_name: Optional[int]
     object_name: Optional[int]
     fields: Optional[List]
+
+class FieldValueMapInput(BaseModel):
+    template_id: int
+    value_map: dict
