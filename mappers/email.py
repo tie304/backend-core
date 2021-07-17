@@ -3,6 +3,9 @@ import os
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from fastapi.templating import Jinja2Templates
 from models.config import SendGridConfig, EmailSettings
+import controllers.email_template as email_template_controler
+import controllers.s3 as s3_controller
+from models.email_template import EmailTrigger
 
 cfg = SendGridConfig()
 email_cfg = EmailSettings()
@@ -36,8 +39,13 @@ def send_verification_email(email: str, verify_url: str):
 
 
 def send_password_reset_email(email: str, reset_url: str):
+    template = email_template_controler.get_email_template_by_trigger(
+        EmailTrigger.password_reset.value
+    )
+    file = s3_controller.download_file(template.object_id)
+    print(file)
     subject = "Password Reset"
     template = email_templates.get_template("password_reset.html").render(
         reset_url=reset_url
     )
-    send_email(email, subject, template)
+    # send_email(email, subject, template)

@@ -1,4 +1,5 @@
 import uuid
+import io
 from depends import get_s3_client
 from botocore.exceptions import ClientError
 
@@ -30,5 +31,9 @@ def upload_file(file: bytes) -> str:
     return obj_uid
 
 
-def download_file(bucket_name, object_name, download_path):
-    s3.download_file(bucket_name, object_name, download_path)
+def download_file(object_id):
+    download = io.BytesIO()
+    s3_client = get_s3_client()
+    s3_response_object = s3_client.get_object(Bucket=aws_cfg.bucket_name, Key=object_id)
+    object_content = s3_response_object["Body"].read()
+    return object_content

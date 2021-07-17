@@ -15,7 +15,7 @@ from models.config import AuthConfig, ProductConfig
 
 from mappers.users import get_user_by_email, get_user_by_id, update_user
 import mappers.auth as auth_mapper
-import mappers.email as email_mapper
+import controllers.email as email_controller
 
 cfg = AuthConfig()
 prod_cfg = ProductConfig()
@@ -56,7 +56,7 @@ def create_user_verification_url(user_id: int):
     auth_mapper.create_user_verification_url(user_id, code)
     user = get_user_by_id(user_id)
     verify_url = f"{prod_cfg.product_ingress_host}/users/verify?code={code}"
-    email_mapper.send_verification_email(user.email, verify_url)
+    email_controller.send_verification_email(user.email, verify_url)
 
 
 def verify_user(code: str):
@@ -183,14 +183,15 @@ def create_reset_password(email: str):
         reset_url = (
             f"{prod_cfg.product_ingress_host}/users/password/reset/?code={reset.code}"
         )
-        email_mapper.send_password_reset_email(email, reset_url)
+        email_controller.send_password_reset_email(email, reset_url)
         return
     if user and user.verified and not user.disabled:
         code = generate_random_code()
         auth_mapper.create_password_reset(user.id, code)
-        # TODO send email here
         reset_url = f"{prod_cfg.product_ingress_host}/users/password/reset/?code={code}"
-        email_mapper.send_password_reset_email(email, reset_url)
+        email_controller.send_password_reset_email(email, reset_url)
+        return
+    raise HTTPException(status_code=400, detail="Please verify your email first")
 
 
 def reset_password(code: str, password: str):
