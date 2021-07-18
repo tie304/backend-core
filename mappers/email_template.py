@@ -4,11 +4,15 @@ from models.email_template import EmailTemplate, EmailTriggerInput
 
 
 def create_email_template(
-    template_name: str, fields: list, object_id: str, user_id: str
+    template_name: str, fields: list, object_id: str, user_id: str, subject: str
 ):
     session = get_database()
     email_template = EmailTemplate(
-        template_name=template_name, user_id=user_id, fields=fields, object_id=object_id
+        template_name=template_name,
+        user_id=user_id,
+        fields=fields,
+        object_id=object_id,
+        email_subject=subject,
     )
     session.add(email_template)
     session.commit()

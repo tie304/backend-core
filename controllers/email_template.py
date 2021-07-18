@@ -33,7 +33,7 @@ def extract_fields(file: bytes):
     return fields
 
 
-def create_email_template(file: File, current_user: UserBase):
+def create_email_template(file: File, current_user: UserBase, subject: str):
     data = file.file.read()
     validate_email_template(file)
     fields = extract_fields(data)
@@ -44,6 +44,7 @@ def create_email_template(file: File, current_user: UserBase):
         user_id=current_user.id,
         object_id=file_id,
         fields=fields,
+        subject=subject,
     )
 
 

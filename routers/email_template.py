@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Query
 
 import controllers.email_template as email_template_controler
 import controllers.auth as auth_controller
@@ -11,10 +11,11 @@ router = APIRouter()
 
 @router.post("/email_template/create")
 def create_email_template(
+    subject: str,
     file: UploadFile = File(...),
     current_user: UserBase = Depends(auth_controller.get_current_active_user),
 ):
-    return email_template_controler.create_email_template(file, current_user)
+    return email_template_controler.create_email_template(file, current_user, subject)
 
 
 @router.post("/email_template/fields")
