@@ -33,23 +33,40 @@ def send_email(to: str, subject: str, template: str):
 
 
 def send_verification_email(email: str, verify_url: str):
-    subject = "Please Verify Your Email"
-    template = email_templates.get_template("verify.html").render(
-        verify_url=verify_url, **email_cfg.dict()
-    )
-    send_email(email, subject, template)
+    try:
+        template = email_template_controler.get_email_template_by_trigger(
+            EmailTrigger.password_reset
+        )
+    except ValueError:
+        template = f"<a href='{verify_url}'>Click Here To Verify Your Email</a>"
+        send_email(email, "Please Verify Your Email.", template)
+        return
 
-
-def send_password_reset_email(email: str, reset_url: str):
-    template = email_template_controler.get_email_template_by_trigger(
-        EmailTrigger.password_reset
-    )
     data = s3_controller.download_file(template.object_id)
-
-    subject = "Password Reset"
-    rtemplate = Environment(loader=BaseLoader()).from_string(str(data))
+    rtemplate = Environment(loader=BaseLoader()).from_string(data.decode("utf-8"))
     rendered_template = rtemplate.render(
         reset_url=reset_url, **template.field_value_map
     )
-    print(rendered_template)
-    # send_email(email, subject, template)
+
+    subject = template.email_subject
+    send_email(email, subject, rendered_template)
+
+
+def send_password_reset_email(email: str, reset_url: str):
+    try:
+        template = email_template_controler.get_email_template_by_trigger(
+            EmailTrigger.password_reset
+        )
+    except ValueError:
+        template = f"<a href='{reset_url}'>Click here to reset your password</a>"
+        send_email(email, "Password Reset", template)
+        return
+
+    data = s3_controller.download_file(template.object_id)
+
+    subject = template.email_subject
+    rtemplate = Environment(loader=BaseLoader()).from_string(data.decode("utf-8"))
+    rendered_template = rtemplate.render(
+        reset_url=reset_url, **template.field_value_map
+    )
+    send_email(email, subject, rendered_template)

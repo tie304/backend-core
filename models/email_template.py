@@ -23,6 +23,7 @@ class EmailTemplate(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     template_name = Column(String, unique=True)
+    email_subject = Column(String, nullable=True)
     object_id = Column(String, unique=True)  # bucket
     trigger = Column(sqlalchemy.Enum(EmailTrigger))
     fields = Column(ARRAY(String))  # fields pulled off template
