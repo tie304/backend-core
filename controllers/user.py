@@ -1,6 +1,6 @@
 from typing import List
 from fastapi import HTTPException
-from models.user import User, UserSignup, UserBase, UserOutput
+from models.user import User, UserSignup, UserBase, UserOutput, PydanticUser
 from controllers.auth import (
     get_password_hash,
     create_user_verification_url,
@@ -39,5 +39,5 @@ def search(limit: int, skip: int) -> List[UserOutput]:
 
 
 def _user_to_output(user: User) -> UserOutput:
-    del user._sa_instance_state
-    return UserOutput(**user.__dict__)
+    p_user = PydanticUser.from_orm(user)
+    return UserOutput(**p_user.dict(by_alias=True))

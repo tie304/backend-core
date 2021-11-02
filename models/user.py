@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional, List
 from sqlalchemy import ARRAY, Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.sql import expression, func
+from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 from pydantic import BaseModel
 from depends import Base
 
@@ -44,6 +45,10 @@ class UserPasswordReset(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, unique=True)
     code = Column(String)
 
+
+PydanticUser = sqlalchemy_to_pydantic(User)
+PydanticUserVerified = sqlalchemy_to_pydantic(UserVerifed)
+PydanticUserPasswordReset = sqlalchemy_to_pydantic(UserPasswordReset)
 
 class UserBase(BaseModel):
     id: int
